@@ -1,0 +1,9 @@
+ 2057  mkdir ex2_test
+ 2058  cd ex2_test
+ 2059  touch tree.txt
+ 2060  touch test.txt
+ 2061  tree | sort -r | head -n 5 > tree.txt
+ 2062  history | sort | tail -n 5 > test.txt
+ 2063  cd ..
+ 2064  rm -r ex2_test
+ 2065  history | tail -n 9 > ex2.txt
