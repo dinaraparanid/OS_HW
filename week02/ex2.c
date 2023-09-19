@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
+// Can be replaced with an indexed version,
+// but for estetical purposes,
+// I use adress arithmetics which is also *(p + i) or p[i]
+
 void print_revert(const char* const left, const char* const right_exclusive) {
     for (const char* c = right_exclusive - 1; c != left; --c)
         putchar(*c);
