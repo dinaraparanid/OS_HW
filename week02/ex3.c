@@ -16,6 +16,7 @@ int belong_correct_radix(const int64_t number, const int radix) {
 
     const int len = strlen(buf);
 
+    // foreach-like loop
     for (char* c = buf; c != buf + len; ++c)
         if (*c - '0' >= radix)
             return 0;
@@ -50,11 +51,16 @@ int64_t convert_to_ten_radix(const int64_t number, const int init_radix) {
     int acc = 0;
     const int len = strlen(buf);
 
+    // foreach-like loop
     for (char* c = buf; c != buf + len; ++c)
         acc += (*c - '0') * pow(init_radix, len - 1 - (c - buf));
 
     return is_negative ? -acc : acc;
 }
+
+// Can be replaced with an indexed version,
+// but for estetical purposes,
+// I use adress arithmetics which is also *(p + i) or p[i]
 
 void print_revert(const char* const left, const char* const right_exclusive) {
     for (const char* c = right_exclusive - 1; c != left; --c)
