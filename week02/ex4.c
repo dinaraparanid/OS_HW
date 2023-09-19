@@ -12,6 +12,7 @@ size_t count(const char* const str, const char c) {
     const size_t len = strlen(str);
     const char lower = tolower(c);
 
+    // foreach-like loop
     for (const char* p = str; p != str + len; ++p)
         cnt += tolower(*p) == lower ? 1 : 0;
 
@@ -24,6 +25,7 @@ void count_all(char* const str) {
     const size_t len = strlen(str);
     const char* p = str;
 
+    // foreach-like loop
     for (; p != str + len - 1; ++p)
         printf("%c:%lu, ", tolower(*p), count(str, *p));
 
