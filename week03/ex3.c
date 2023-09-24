@@ -115,6 +115,9 @@ void dircpy(directory* const dest, const directory* const src) {
     dest->path[path_sz] = '\0';
 }
 
+// Note: In C23 the first parameter is not required for va_start,
+// see https://en.cppreference.com/w/c/variadic/va_start
+
 directory* compose_subdirs(const size_t dirs_num, ...) {
     va_list args;
     va_start(args, dirs_num);
