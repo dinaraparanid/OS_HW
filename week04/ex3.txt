@@ -1,0 +1,15 @@
+Both experiments show that children processes are created
+in the amount as the command line arguments are passed.
+No additional side effects were introduced in 'pstree' command.
+Same results were obtained for both immediate children processes
+(print message and finish) and long time processes (with sleep 30s).
+
+Output for the 3 children processes:
+
+┬─bash───bash─┬─bash───ex3───3*[ex3]
+│             └─pstree
+
+Output for the 5 children processes:
+
+┬─bash───bash─┬─bash───ex3───5*[ex3]
+│             └─pstree

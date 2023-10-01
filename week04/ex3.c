@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main(int argc, char** argv) {
-    char* nstr = argv[1];
+int main(const int argc, const char** const argv) {
+    const char* const nstr = argv[1];
 
     int n = 0;
     sscanf(nstr, "%d", &n);
