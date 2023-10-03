@@ -8,13 +8,7 @@ int main(const int argc, const char** const argv) {
     sscanf(nstr, "%d", &n);
 
     for (int i = 0; i < n; ++i) {
-        const pid_t child = fork();
-
-        if (!child) {
-            printf("I am process %d\n", i);
-            return 0;
-        }
-
+        fork();
         sleep(5);
     }
 
