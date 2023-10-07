@@ -1,0 +1,1 @@
+gcc channel.c -o channel && ./channel
