@@ -1,3 +1,4 @@
+#!/bin/bash
 mkdir ex2_test
 cd ex2_test
 touch tree.txt

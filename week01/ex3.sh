@@ -1,3 +1,4 @@
+#!/bin/bash
 print_date_sleep_3s() {
 	date
 	sleep 3
