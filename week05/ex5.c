@@ -116,15 +116,18 @@ int remove_item() {
     return 1;
 }
 
+struct timespec delay(const time_t secs) {
+    struct timespec tm;
+    clock_gettime(CLOCK_REALTIME, &tm);
+    tm.tv_sec += secs;
+    return tm;
+}
+
 void* consumer(void* const arg) {
     while (1) {
         while (buf_size == 0) {
             pthread_mutex_lock(&insert_cond_lock);
-
-            struct timespec tm;
-            clock_gettime(CLOCK_REALTIME, &tm);
-            tm.tv_sec += 1;
-
+            struct timespec tm = delay(1);
             pthread_cond_timedwait(&insert_cond, &insert_cond_lock, &tm);
             pthread_mutex_unlock(&insert_cond_lock);
         }
@@ -149,6 +152,18 @@ void init_concurrency() {
     TAILQ_INIT(&buffer);
 }
 
+void destroy_buffer() {
+    entry* e = TAILQ_FIRST(&buffer);
+
+    while (e != NULL) {
+        entry* next = TAILQ_NEXT(e, entries);
+        free(e);
+        e = next;
+    }
+
+    TAILQ_INIT(&buffer);
+}
+
 void destroy_concurrency() {
     pthread_cond_destroy(&insert_cond);
     pthread_cond_destroy(&remove_cond);
@@ -158,6 +173,8 @@ void destroy_concurrency() {
 
     pthread_mutex_destroy(&buf_lock);
     pthread_mutex_destroy(&cnt_lock);
+
+    destroy_buffer();
 }
 
 int main(const int argc, char** const argv) {
@@ -175,16 +192,15 @@ int main(const int argc, char** const argv) {
     pthread_t prod;
     pthread_create(&prod, NULL, &producer, NULL);
 
-    for (int i = 0; i < m; ++i)
-        pthread_create(&thrds[i], NULL, &consumer, NULL);
+    for (pthread_t* t = thrds; t != thrds + m; ++t)
+        pthread_create(t, NULL, &consumer, NULL);
 
     void* res;
 
-    for (pthread_t* p = thrds; p != thrds + m; ++p)
-        pthread_join(*p, &res);
+    for (pthread_t* t = thrds; t != thrds + m; ++t)
+        pthread_join(*t, &res);
 
-    pthread_cancel(prod);
-
+    pthread_join(prod, &res);
     printf("%d\n", primes_cnt);
 
     free(thrds);

@@ -1,0 +1,12 @@
+Results for ex4 show almost identical picture in the sense of performance improvement.
+Performance increases due to the fact that tasks become smaller and smaller,
+but at the end time for communication and scheduling of threads start to take too much time
+
+What was not so unexpected is that the general performance in ex4 is better than in ex3.
+I think it is due to the fact that solution in ex4 does not require any additional
+preparations (range distribution between tasks, memory allocations, etc.),
+but just shared mutability itself.
+
+The last case with 100 threads makes clear that synchronizing too many threads
+is not a good option for the performance, since we start to waste too much
+time on the communication and scheduling of threads

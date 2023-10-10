@@ -1,0 +1,21 @@
+The results demonstrate an expected picture:
+
+1) It takes a massive time for a single thread to analyze data
+
+2) For 2 threads, it is almost 1,5 times better than a single thread's performance, since now we have 2 workers.
+However, it is not 2 times better because I/O related things for threads (such as the creating and scheduling)
+take enough time
+
+3) For 4 threads, performance is also improved, but not as desired. Reasons are the same as in (2)
+
+4) For 10 threads, it is still improving
+
+5) For 100 threads, the performance was still improved a bit
+due to the smaller tasks and not so expensive I/O operations between threads.
+However, this time we see that even if we have 10 times smaller tasks,
+fork parallelism does not provide any benefit, because it requires
+too many resources for the task to handle at once.
+
+After (5) we can come to the conclusion that solving high-computational
+problems with many threads is not a good idea, since CPU will start to
+waste too much time on I/O operations for threads, rather than a real calculation

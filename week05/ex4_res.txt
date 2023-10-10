@@ -18,12 +18,13 @@ sys     0m0,056s
 
 664579
 
-real    0m1,597s
-user    0m9,154s
-sys     0m0,231s
+real    0m1,587s
+user    0m9,211s
+sys     0m0,192s
 
 664579
 
-real    0m1,580s
-user    0m9,084s
-sys     0m0,308s
+real    0m1,622s
+user    0m9,296s
+sys     0m0,219s
+

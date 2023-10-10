@@ -1,0 +1,10 @@
+In my case, after running 4 subscribers with their own pipes,
+they all received their messages accurately.
+
+However, when we shut down any subscriber and recreate it with a wrong pipe
+(2+ processes with pipe #q), they are starting to collapse
+after trying to simultaneously read a pipe's content.
+
+It happens due to the fact that pipe's pointer is moving concurrently.
+So, in order to correctly synchronize all processes,
+each of them should use its own pipe.
