@@ -115,20 +115,20 @@ process_data* find_next_process() {
     // location of the next process in the data array
 
     int location = 0;
+    int min_bt = INT32_MAX;
     int min_at = INT32_MAX;
-    int min_at_idx = INT32_MAX;
 
     for (int i = 0; i < data_size; ++i) {
         if (data[i].completion_time != 0)
             continue;
 
-        if (data[i].arrival_time < min_at) {
+        if (data[i].burst_time < min_bt) {
+            location = i;
+            min_bt = data[i].initial_burst_time;
+            min_at = data[i].arrival_time;
+        } else if (data[i].initial_burst_time == min_bt && data[i].arrival_time < min_at) {
             location = i;
             min_at = data[i].arrival_time;
-            min_at_idx = data[i].index;
-        } else if (data[i].arrival_time == min_at && data[i].index < min_at_idx) {
-            location = i;
-            min_at_idx = data[i].index;
         }
     }
 

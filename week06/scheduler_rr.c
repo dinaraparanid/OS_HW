@@ -21,6 +21,7 @@ typedef struct {
     int completion_time;
     int turnaround_time;
     int remaining_burst;
+    int started;
 } process_data;
 
 /**
@@ -47,6 +48,9 @@ pid_t proc_pids[PROC_MAX];
 /** Size of data array */
 unsigned data_size = 0;
 
+/** Time is seconds that process works before timer interruption */
+unsigned quantum = 0;
+
 void read_file(FILE* const file) {
     while (!feof(file)) {
         process_data d;
@@ -60,6 +64,7 @@ void read_file(FILE* const file) {
         d.completion_time = 0;
         d.turnaround_time = 0;
         d.remaining_burst = 0;
+        d.started = 0;
         data[data_size++] = d;
     }
 
@@ -115,20 +120,15 @@ process_data* find_next_process() {
     // location of the next process in the data array
 
     int location = 0;
-    int min_at = INT32_MAX;
-    int min_at_idx = INT32_MAX;
+    int min_bt = INT32_MAX;
 
     for (int i = 0; i < data_size; ++i) {
-        if (data[i].completion_time != 0)
+        if (data[i].completion_time != 0 || data[i].arrival_time > total_time)
             continue;
 
-        if (data[i].arrival_time < min_at) {
+        if (data[i].burst_time < min_bt) {
             location = i;
-            min_at = data[i].arrival_time;
-            min_at_idx = data[i].index;
-        } else if (data[i].arrival_time == min_at && data[i].index < min_at_idx) {
-            location = i;
-            min_at_idx = data[i].index;
+            min_bt = data[i].burst_time;
         }
     }
 
@@ -194,6 +194,7 @@ void run_new_process(const int process) {
             data[running_process].burst_time
     );
 
+    data[running_process].started = 1;
     data[running_process].response_time = total_time - data[running_process].arrival_time;
 }
 
@@ -206,6 +207,18 @@ void resume_process(const int process) {
             running_process,
             data[running_process].burst_time
     );
+}
+
+void stop_running_process() {
+    suspend(proc_pids[running_process]);
+
+    printf(
+            "Scheduler: Stopping Process %d (Remaining Time: %d)\n",
+            running_process,
+            data[running_process].burst_time
+    );
+
+    running_process = -1;
 }
 
 /** Called every second as handler for SIGALRM signal */
@@ -221,38 +234,47 @@ void schedule_handler(const int signum) {
         printf("Scheduler: Runtime: %d seconds\n", total_time);
         printf("Scheduler: Process %d is running with %d seconds left\n", running_process, running_data->burst_time);
 
-        // wait until done
-        if (running_data->burst_time != 0)
-            return;
+        if (running_data->burst_time == 0) {
+            terminate(proc_pids[running_process]);
 
-        terminate(proc_pids[running_process]);
+            printf(
+                    "Scheduler: Terminating Process %d (Remaining Time: %d)\n",
+                    running_process,
+                    running_data->burst_time
+            );
 
-        printf(
-                "Scheduler: Terminating Process %d (Remaining Time: %d)\n",
-                running_process,
-                running_data->burst_time
-        );
+            int res = 0;
+            waitpid(proc_pids[running_process], &res, 0);
 
-        int res = 0;
-        waitpid(proc_pids[running_process], &res, 0);
+            running_data->completion_time = total_time;
+            running_data->turnaround_time = total_time - running_data->arrival_time;
+            running_data->waiting_time = running_data->turnaround_time - running_data->initial_burst_time;
 
-        running_data->completion_time = total_time;
-        running_data->turnaround_time = total_time - running_data->arrival_time;
-        running_data->waiting_time = running_data->turnaround_time - running_data->initial_burst_time;
-
-        proc_pids[running_process] = 0;
-        running_process = -1;
+            proc_pids[running_process] = 0;
+            running_process = -1;
+        }
     }
+
+    if (total_time % quantum != 0)
+        return;
+
+    if (running_process != -1)
+        stop_running_process();
 
     // this call will check the bursts of all processes
     check_burst();
 
     const process_data* next_proc = find_next_process();
-    run_new_process(next_proc->index);
+    next_proc->started
+        ? resume_process(next_proc->index)
+        : run_new_process(next_proc->index);
 }
 
 
 int main(int argc, char *argv[]) {
+    printf("Quantum: ");
+    scanf("%d", &quantum);
+
     // read the data file
     FILE* const in_file = fopen(argv[1], "r");
 
