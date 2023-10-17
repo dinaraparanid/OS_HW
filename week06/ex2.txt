@@ -1,0 +1,9 @@
+1) After changing value of TRI_BASE to 100, from the scheduling point of view nothing was changed.
+However, workers found significantly more triangular numbers: in the 1-st case it was not greater than 10,
+in the 2-nd case, there were hundreds of such numbers
+
+2) After changing all arrival times to zero, all processes were scheduled by their indices in ascending order.
+It is due to the fact that they were additionally sorted by their indices (as mentioned in the task condition).
+
+Previous order: 4, 3, 5, 0, 1, 6, 2.
+New order: 0, 1, 2, 3, 4, 5, 6.

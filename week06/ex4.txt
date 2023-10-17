@@ -1,0 +1,17 @@
+Results of this task are highly dependent on the provided quantum.
+As practise shows, quantum equal to 1 second gives more control and better throughput
+than other quantum values (considering that we use integer seconds).
+
+Results for quantum = 1 sec:
+    runtime: 32 secs
+    order: 4, 5, 4, 0, 0, 4, 4, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3
+    avg_wt=4.571429
+    avg_tat=8.857142
+
+As it can be seen, firstly, we wait for the first process to handle (4),
+then we switch to the quickest processes so far (5 and 0),
+then we continue with ready process (4) until the first new arrive,
+then we handle quickest processes left according to their burst time
+
+Average performance was improved due to the smartest scheduling from all 3 exercises,
+runtime has not changed.

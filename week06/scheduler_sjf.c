@@ -122,13 +122,13 @@ process_data* find_next_process() {
         if (data[i].completion_time != 0)
             continue;
 
-        if (data[i].burst_time < min_bt) {
-            location = i;
-            min_bt = data[i].initial_burst_time;
-            min_at = data[i].arrival_time;
-        } else if (data[i].initial_burst_time == min_bt && data[i].arrival_time < min_at) {
+        if (data[i].arrival_time < min_at) {
             location = i;
             min_at = data[i].arrival_time;
+            min_bt = data[i].index;
+        } else if (data[i].arrival_time == min_at && data[i].burst_time < min_bt) {
+            location = i;
+            min_bt = data[i].burst_time;
         }
     }
 

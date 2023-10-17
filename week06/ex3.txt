@@ -1,0 +1,20 @@
+Ex2 order: 4, 3, 5, 0, 1, 6, 2.
+Ex3 order: 4, 5, 3, 0, 1, 6, 2.
+
+Ex2 statistics:
+    runtime: 32 secs
+    avg_wt=8.000000
+    avg_tat=12.285714
+
+Ex3 statistics:
+    runtime: 32 secs
+    avg_wt=7.000000
+    avg_tat=11.285714
+
+Runtime has not changed, because SJF algorithm still picks tasks that arrive quicker,
+meaning that we have to wait the same time as before + all processes work exactly
+as in previous tasks, so runtime will stay the same.
+
+Average performance is improved, because processes 4, 0, 1, 6, 2 have not changed their waiting time
+and turnaround time (because only 3 and 5 are swapped), but now wt3_ex3 = wt3_ex2 + 1 and wt5_ex2 = wt5_ex3 + 3,
+meaning that we have total wt improvement => improvement in avg. wt and avg. tat.

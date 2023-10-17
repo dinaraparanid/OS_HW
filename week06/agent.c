@@ -43,6 +43,7 @@ int main() {
 
     signal(SIGUSR1, sig_handler);
     signal(SIGUSR2, sig_handler);
+    raise(SIGUSR1);
 
     for (;;) sleep(1);
     return 0;

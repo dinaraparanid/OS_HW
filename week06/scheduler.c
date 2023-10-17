@@ -251,7 +251,6 @@ void schedule_handler(const int signum) {
     run_new_process(next_proc->index);
 }
 
-
 int main(int argc, char *argv[]) {
     // read the data file
     FILE* const in_file = fopen(argv[1], "r");
