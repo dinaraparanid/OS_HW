@@ -1,0 +1,27 @@
+First-Fit Allocator:
+
+average result after 10 tries: 39,484 ms
+best result after 10 tries: 18.30 ms
+worst result after 10 tries: 51.12 ms
+
+Best-Fit Allocator:
+
+average result after 10 tries: 1579,901 ms
+best result after 10 tries: 1560.77 ms
+worst result after 10 tries: 1605.55 ms
+
+Worst-Fit Allocator:
+
+average result after 10 tries: 1583,166 ms
+best result after 10 tries: 1561.55 ms
+worst result after 10 tries: 1616.19 ms
+
+Explanations:
+
+Due to the fact that the task conditions clearly indicate the implementation of the search for free memory,
+using only array's data, i.e., without additional data structures (for example, a linked list),
+the best-fit and worst-fit algorithms lag far behind first-fit.
+
+The task did not mention a specific way to find the location of the address to delete,
+so the implementation of my algorithm uses a global hash table from search.h to quickly clear the address memory.
+A linked list of addresses was additionally used to deallocate the entire memory.

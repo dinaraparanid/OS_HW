@@ -1,0 +1,55 @@
+allocate 1001 51200
+allocate 2002 25600
+clear 1001
+allocate 3003 12800
+clear 2002
+allocate 4004 25600
+allocate 5005 6400
+allocate 6006 12800
+clear 4004
+allocate 7007 51200
+allocate 8008 25600
+allocate 9009 6400
+allocate 1010 12800
+allocate 1111 25600
+clear 8008
+allocate 1212 6400
+clear 1010
+allocate 1313 12800
+allocate 1414 6400
+clear 1313
+allocate 1515 25600
+allocate 1616 6400
+allocate 1717 12800
+clear 1414
+allocate 1818 25600
+clear 1616
+allocate 1919 6400
+clear 1717
+clear 1919
+allocate 2020 51200
+allocate 2121 12800
+clear 2121
+allocate 2222 25600
+clear 2020
+allocate 2323 6400
+allocate 2424 12800
+clear 2323
+allocate 2525 25600
+allocate 2626 6400
+allocate 2727 12800
+allocate 2828 25600
+clear 2727
+clear 2828
+allocate 2929 6400
+allocate 3030 25600
+clear 3030
+allocate 3131 12800
+allocate 3232 6400
+clear 3131
+allocate 3333 12800
+clear 3232
+allocate 3434 25600
+clear 3333
+clear 3434
+end
