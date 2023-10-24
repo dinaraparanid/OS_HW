@@ -18,7 +18,7 @@ typedef struct addr_entry {
 LIST_HEAD(addr_list, addr_entry);
 typedef struct addr_list addr_list;
 
-typedef struct allocator {
+typedef struct {
     void* data;
     addr_list addr_space;
 } allocator;
@@ -174,13 +174,14 @@ void __allocator_free(allocator* const self) {
     }
 
     free(self->data);
+    hdestroy();
 }
 
 struct {
     allocator* (*new) ();
-    void (*allocate)(struct allocator* self, size_t adrs, size_t size);
+    void (*allocate)(allocator* self, size_t adrs, size_t size);
     void (*clear)(size_t adrs);
-    void (*free)(struct allocator* self);
+    void (*free)(allocator* self);
 } first_fit_allocator = {
         .new = __allocator_new,
         .allocate = __allocate_first_fit,
@@ -190,9 +191,9 @@ struct {
 
 struct {
     allocator* (*new) ();
-    void (*allocate)(struct allocator* self, size_t adrs, size_t size);
+    void (*allocate)(allocator* self, size_t adrs, size_t size);
     void (*clear)(size_t adrs);
-    void (*free)(struct allocator* self);
+    void (*free)(allocator* self);
 } best_fit_allocator = {
         .new = __allocator_new,
         .allocate = __allocate_best_fit,
@@ -202,9 +203,9 @@ struct {
 
 struct {
     allocator* (*new) ();
-    void (*allocate)(struct allocator* self, size_t adrs, size_t size);
+    void (*allocate)(allocator* self, size_t adrs, size_t size);
     void (*clear)(size_t adrs);
-    void (*free)(struct allocator* self);
+    void (*free)(allocator* self);
 } worst_fit_allocator = {
         .new = __allocator_new,
         .allocate = __allocate_worst_fit,
