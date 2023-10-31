@@ -1,3 +1,4 @@
+#!/bin/bash
 PID=$(cat /tmp/ex1.pid)
 MEM=$(cat /proc/"$PID"/maps)
 
