@@ -145,17 +145,21 @@ void free_mem() {
 
 int perform_mem_request(const char request, page_table_entry* const page) {
     if (request == 'W') page->is_dirty = 1;
+    page->referenced = 0;
     return request == 'R' || request == 'W';
 }
 
 void handle_mem_requests() {
     static long mem_request_ind = 0;
+    update_page_table_from_file();
 
     for (
             const char** mem_request = commands + mem_request_ind;
             mem_request != commands + num_of_commands;
             ++mem_request, ++mem_request_ind
     ) {
+        printf("MMU: REQUEST № %ld\n", mem_request_ind);
+
         const long page_ind = parse_page_from_request(*mem_request);
 
         if (page_ind == -1) {
@@ -167,6 +171,7 @@ void handle_mem_requests() {
 
         if (!p->is_valid) {
             p->referenced = getpid();
+            log_page_table();
             store_page_table();
             kill(pager_pid, SIGUSR1);
             return;
@@ -183,6 +188,7 @@ void handle_mem_requests() {
 
     free_mem();
     kill(pager_pid, SIGUSR1);
+    exit(EXIT_SUCCESS);
 }
 
 void sig_handler(const int signum) {

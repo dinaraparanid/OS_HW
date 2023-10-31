@@ -186,13 +186,34 @@ void log_page_table() {
     puts("-----------------------------\n");
 }
 
+void log_frame_status(const long frame_ind) {
+    printf("Frame №%ld: %ld\n", frame_ind, frames_status[frame_ind]);
+}
+
+void log_frames_status() {
+    puts("PAGER:");
+    puts("--------- Frames Status ---------\n");
+
+    for (long i = 0; i < num_of_frames; ++i)
+        log_frame_status(i);
+
+    puts("-----------------------------\n");
+}
+
 void log_disk_accesses() {
     printf("PAGER: Total disk accesses: %ld\n", disk_access_cnt);
 }
 
 void swap_in(const long page_ind, const long frame_ind) {
     strcpy(RAM[frame_ind], disk[page_ind]);
+    page_table[page_ind].is_valid = 1;
+    page_table[page_ind].frame = frame_ind;
     frames_status[frame_ind] = page_ind;
+    store_page_table();
+
+    puts("PAGER: SWAP IN");
+    log_page_table();
+    log_frames_status();
     log_RAM();
 }
 
@@ -206,14 +227,16 @@ void swap_out(const long frame_ind, const long page_ind) {
     free_frame(frame_ind);
     ++disk_access_cnt;
 
+    puts("PAGER: SWAP OUT");
     log_page_table();
+    log_frames_status();
     log_RAM();
 
-    page_table[page_ind].is_valid = 1;
+    page_table[page_ind].is_valid = 0;
     page_table[page_ind].frame = -1;
     page_table[page_ind].is_dirty = 0;
     page_table[page_ind].referenced = 0;
-    store_page_table_entry(page_table + page_ind, page_ind);
+    store_page_table();
 }
 
 void update_page_table_from_file() {
@@ -223,6 +246,12 @@ void update_page_table_from_file() {
                 page_table_file + page_table_size(i),
                 sizeof(page_table_entry)
         );
+
+    memset(frames_status, -1, num_of_frames * sizeof(long));
+
+    for (page_table_entry* p = page_table; p != page_table + num_of_pages; ++p)
+        if (p->frame != -1 && p->is_valid)
+            frames_status[p->frame] = p - page_table;
 }
 
 page_table_entry* find_requested_page() {
@@ -273,15 +302,20 @@ void free_mem() {
 
 void on_mmu_request_received(const pid_t mmu_pid) {
     update_page_table_from_file();
+
+    puts("PAGER: REQUEST");
     log_page_table();
+    log_frames_status();
+    log_RAM();
 
     page_table_entry* const pte = find_requested_page();
 
     if (pte == NULL) {
-        puts("НИХУЯ НЕ НАШЕЛ");
+        puts("PAGER: НИХУЯ НЕ НАШЕЛ");
         log_page_table();
         log_disk_accesses();
         free_mem();
+        puts("PISTON");
         exit(EXIT_SUCCESS);
     }
 
@@ -340,6 +374,7 @@ int main(const int argc, const char** const argv) {
     page_table_file = init_page_table_file();
 
     store_page_table();
+    puts("PAGER: START");
     log_page_table();
 
     RAM = init_RAM();
