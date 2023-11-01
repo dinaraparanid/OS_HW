@@ -21,7 +21,7 @@ int main() {
 
         printf("Memory usage: %ld KB\n",usage.ru_maxrss);
         // memory is intentionally not cleaned:
-        // free(mem);
+        free(mem);
     }
 
     return 0;

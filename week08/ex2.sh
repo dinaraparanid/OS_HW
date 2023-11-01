@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo gcc pager.c -o pager
-gcc mmu.c -o mmu
+sudo gcc mmu.c -o mmu
 
 sudo ./pager 4 2 &
 sleep 1

@@ -1,0 +1,69 @@
+As we can see from the simulation results below,
+when applications requires too much memory,
+huge (but not all) amount of process's data in frames
+is swapped out. Also, during the allocation process,
+few virtual pages can be swapped in.
+
+The most interesting part happens after the process is terminated
+(and memory is intentionally leaked). As it can be seen,
+OS swaps in (in other words, returns) the leaked memory and frees it
+for the other processes to run, but does it lazily (not frees everything immediately)
+
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 5  0 607972 4401984 936996 3342444   24   48   161   152 2238    8  5  2 94  0  0
+
+Memory usage: 977664 KB
+
+ 1  0 607972 3416412 937012 3342532    0    0    20   288 12791 11480 20  8 72  0  0
+
+Memory usage: 1954688 KB
+
+ 4  0 607972 2436936 937012 3342532    0    0     0     0 10441 10289 14  8 78  0  0
+
+Memory usage: 2931200 KB
+
+ 1  0 607972 1459764 937012 3342532    0    0     0     0 15812 15748 25  8 67  0  0
+ 2  0 607972 647832 937012 3342532    0    0     0     0 6745 5103  7  6 87  0  0
+
+Memory usage: 3907712 KB
+
+ 1  0 607972 480264 937012 3342532    0    0     0     0 1940 3212  6  2 92  0  0
+
+Memory usage: 4884352 KB
+
+ 3  0 611556 564328 579552 3192296    0 3248    28  3252 4317 3515  6 10 84  0  0
+
+Memory usage: 5860992 KB
+
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0 615652 151320 220248 2988968    0 3832     0  3864 2512 4128  5  9 86  0  0
+
+Memory usage: 6837376 KB
+
+ 3  0 842468 201048   4444 2335400   32 225924   636 226444 13070 4369  8 16 76  0  0
+ 2  0 894180 163932   4448 2335160  284 51768   352 51768 20949 4081  4  4 92  0  0
+
+Memory usage: 7813888 KB
+
+ 1  0 1562332 232984   2708 2040592  352 660964   356 661076 44929 4408  4 20 75  0  0
+ 3  0 2068244 155864   2696 1952904 2376 523796  2452 523812 100388 5208  5 19 75  1  0
+
+Memory usage: 8425216 KB
+
+ 1  0 2096676 223388   2500 1625444  356 30512   832 30512 18198 4306  4  7 88  0  0
+
+Memory usage: 9401472 KB
+
+ 2  0 2094412 162936   1012 707516 3172  536 20560   536 13085 5569  4 12 83  1  0
+
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0 1730620 9564352   1184 724488  764 2740 48418  4172 13281 5982  4 11 83  2  0
+ 1  0 1730444 9555392   1348 732552  196    0  5072     0 11827 4206  6  2 91  1  0
+ 3  1 1669076 9485352   1364 733260 69096    0 69888    56 22829 23647  8  4 77 11  0
+ 2  0 1442152 9238152   1368 751040 229212    0 245114     0 34266 39088  9  8 62 21  0
+ 1  0 1432840 9229112   1372 752284 6788    0  8060     0 12183 5586 11  2 86  1  0
+ 1  0 1432812 9222592   1372 757576   40    0  4574     8 1874 3124  7  2 91  0  0
+ 2  0 1432628 9213784   1508 766100  156    0  7163     0 2131 3588  5  2 92  0  0
