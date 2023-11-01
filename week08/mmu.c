@@ -43,6 +43,8 @@ long parse_long_arg(const char** argv, const int index) {
     return arg;
 }
 
+// -------------------------- Page Table --------------------------
+
 size_t page_table_size(const long pages_num) {
     return pages_num * sizeof(page_table_entry);
 }
@@ -54,6 +56,34 @@ void update_page_table_from_file() {
                 page_table_file + page_table_size(i),
                 sizeof(page_table_entry)
         );
+}
+
+void log_page_entity(const page_table_entry* const p) {
+    printf(
+            "Page %ld ---> valid=%d, frame=%ld, dirty=%d, referenced=%d\n",
+            p - page_table,
+            p->is_valid,
+            p->frame,
+            p->is_dirty,
+            p->referenced
+    );
+}
+
+void log_init_page_table() {
+    puts("-------------------------");
+    puts("Initialized page table");
+
+    for (const page_table_entry* p = page_table; p != page_table + num_of_pages; ++p)
+        log_page_entity(p);
+}
+
+void log_page_table() {
+    puts("Page Table");
+
+    for (const page_table_entry* p = page_table; p != page_table + num_of_pages; ++p)
+        log_page_entity(p);
+
+    puts("");
 }
 
 page_table_entry* init_page_table() {
@@ -120,36 +150,45 @@ void store_page_table() {
         store_page_table_entry(page_table + i, i);
 }
 
-void log_page_table_entry(const long page_ind) {
-    printf("\nPage №%ld:\n", page_ind);
-    printf("Valid: %d\n", page_table[page_ind].is_valid);
-    printf("Frame: %ld\n", page_table[page_ind].frame);
-    printf("Dirty: %d\n", page_table[page_ind].is_dirty);
-    printf("Referenced: %d\n", page_table[page_ind].referenced);
-}
-
-void log_page_table() {
-    puts("MMU:");
-    puts("--------- Page Table ---------\n");
-
-    for (long i = 0; i < num_of_pages; ++i)
-        log_page_table_entry(i);
-
-    puts("-----------------------------\n");
-}
-
 void free_mem() {
     munmap(page_table_file, page_table_size(num_of_pages));
     free(page_table);
 }
 
-int perform_mem_request(const char request, page_table_entry* const page) {
-    if (request == 'W') page->is_dirty = 1;
+const char* parse_request_type(const char* const mem_request) {
+    if (*mem_request == 'R') return "Read";
+    if (*mem_request == 'W') return "Write";
+    return NULL;
+}
+
+void perform_mem_request(const char request, page_table_entry* const page) {
+    if (request == 'W') {
+        puts("It is a write request then set the dirty field");
+        page->is_dirty = 1;
+    }
+
     page->referenced = 0;
-    return request == 'R' || request == 'W';
+}
+
+void on_invalid_input() {
+    puts("Invalid request");
+    free_mem();
+    exit(EXIT_FAILURE);
+}
+
+void on_invalid_page(page_table_entry* const p) {
+    puts("It is not a valid page --> page fault");
+    p->referenced = getpid();
+    store_page_table();
+    log_page_table();
+
+    puts("Ask pager to load it from disk (SIGUSR1 signal) and wait");
+    kill(pager_pid, SIGUSR1);
 }
 
 void handle_mem_requests() {
+    puts("-------------------------");
+
     static long mem_request_ind = 0;
     update_page_table_from_file();
 
@@ -158,18 +197,22 @@ void handle_mem_requests() {
             mem_request != commands + num_of_commands;
             ++mem_request, ++mem_request_ind
     ) {
-        printf("MMU: REQUEST № %ld\n", mem_request_ind);
+        const char* const request_type = parse_request_type(*mem_request);
+
+        if (request_type == NULL)
+            on_invalid_input();
 
         const long page_ind = parse_page_from_request(*mem_request);
 
-        if (page_ind == -1) {
-            free_mem();
-            exit(EXIT_FAILURE);
-        }
+        if (page_ind == -1)
+            on_invalid_input();
+
+        printf("%s Request for page %ld\n", request_type, page_ind);
 
         page_table_entry* const p = page_table + page_ind;
 
         if (!p->is_valid) {
+            puts("It is not a valid page --> page fault");
             p->referenced = getpid();
             log_page_table();
             store_page_table();
@@ -177,22 +220,26 @@ void handle_mem_requests() {
             return;
         }
 
-        if (!perform_mem_request(**mem_request, p)) {
-            free_mem();
-            exit(EXIT_FAILURE);
-        }
+        perform_mem_request(**mem_request, p);
 
         store_page_table();
         log_page_table();
     }
 
+    puts("Done all requests.");
     free_mem();
+
+    puts("MMU sends SIGUSR1 to the pager.");
     kill(pager_pid, SIGUSR1);
+
+    puts("MMU terminates.");
     exit(EXIT_SUCCESS);
 }
 
 void sig_handler(const int signum) {
     sleep(1);
+    puts("MMU resumed by SIGCONT signal from pager");
+    log_page_table();
 
     if (signum == SIGCONT) {
         handle_mem_requests();

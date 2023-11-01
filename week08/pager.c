@@ -50,41 +50,7 @@ long parse_long_arg(const char** argv, const int index) {
     return arg;
 }
 
-char* random_mem_entry() {
-    char* const mem = malloc(MEM_ENTRY_SIZE + 1);
-
-    for (int i = 0; i < MEM_ENTRY_SIZE;) {
-        char c = rand() % 128;
-        if (isprint(c)) mem[i++] = c;
-    }
-
-    mem[MEM_ENTRY_SIZE] = '\0';
-    return mem;
-}
-
-char** init_disk() {
-    char** const dsk = malloc(num_of_pages * sizeof(char*));
-
-    for (char** p = dsk; p != dsk + num_of_pages; ++p)
-        *p = random_mem_entry();
-
-    return dsk;
-}
-
-char** init_RAM() {
-    char** const ram = malloc(num_of_frames * sizeof(char*));
-
-    for (char** p = ram; p != ram + num_of_frames; ++p)
-        *p = calloc(MEM_ENTRY_SIZE + 1, sizeof(char));
-
-    return ram;
-}
-
-long* init_frames_status() {
-    long* const frames = malloc(num_of_frames * sizeof(long));
-    memset(frames, -1, num_of_frames * sizeof(long));
-    return frames;
-}
+// -------------------------- Page Table --------------------------
 
 page_table_entry new_page() {
     page_table_entry e = {
@@ -99,6 +65,25 @@ page_table_entry new_page() {
 
 size_t page_table_size(const long pages_num) {
     return pages_num * sizeof(page_table_entry);
+}
+
+void log_page_entity(const page_table_entry* const p) {
+    printf(
+            "Page %ld ---> valid=%d, frame=%ld, dirty=%d, referenced=%d\n",
+            p - page_table,
+            p->is_valid,
+            p->frame,
+            p->is_dirty,
+            p->referenced
+    );
+}
+
+void log_init_page_table() {
+    puts("-------------------------");
+    puts("Initialized page table");
+
+    for (const page_table_entry* p = page_table; p != page_table + num_of_pages; ++p)
+        log_page_entity(p);
 }
 
 page_table_entry* init_page_table() {
@@ -158,63 +143,100 @@ char* init_page_table_file() {
     return file;
 }
 
+// -------------------------- RAM --------------------------
+
+char* random_mem_entry() {
+    char* const mem = malloc(MEM_ENTRY_SIZE + 1);
+
+    for (int i = 0; i < MEM_ENTRY_SIZE;) {
+        char c = rand() % 128;
+        if (isprint(c)) mem[i++] = c;
+    }
+
+    mem[MEM_ENTRY_SIZE] = '\0';
+    return mem;
+}
+
+char** init_RAM() {
+    char** const ram = malloc(num_of_frames * sizeof(char*));
+
+    for (char** p = ram; p != ram + num_of_frames; ++p)
+        *p = calloc(MEM_ENTRY_SIZE + 1, sizeof(char));
+
+    return ram;
+}
+
+void log_frame(char** const frame) {
+    printf("Frame %ld ---> %s\n", frame - RAM, *frame);
+}
+
 void log_RAM() {
-    puts("PAGER:");
-    puts("--------- RAM ---------\n");
+    puts("RAM array");
 
-    for (long i = 0; i < num_of_frames; ++i)
-        printf("\nFrame №%ld: %s\n", i, RAM[i]);
-
-    puts("-----------------------\n");
+    for (char** frame = RAM; frame != RAM + num_of_frames; ++frame)
+        log_frame(frame);
 }
 
-void log_page_table_entry(const long page_ind) {
-    printf("\nPage №%ld:\n", page_ind);
-    printf("Valid: %d\n", page_table[page_ind].is_valid);
-    printf("Frame: %ld\n", page_table[page_ind].frame);
-    printf("Dirty: %d\n", page_table[page_ind].is_dirty);
-    printf("Referenced: %d\n", page_table[page_ind].referenced);
+void log_init_RAM() {
+    puts("-------------------------");
+    puts("Initialized RAM");
+    log_RAM();
 }
 
-void log_page_table() {
-    puts("PAGER:");
-    puts("--------- Page Table ---------\n");
+// -------------------------- Disk --------------------------
 
-    for (long i = 0; i < num_of_pages; ++i)
-        log_page_table_entry(i);
-
-    puts("-----------------------------\n");
+void log_disk_page(char** const p) {
+    printf("Page %ld ---> %s\n", p - disk, *p);
 }
 
-void log_frame_status(const long frame_ind) {
-    printf("Frame №%ld: %ld\n", frame_ind, frames_status[frame_ind]);
+void log_init_disk() {
+    puts("-------------------------");
+    puts("Initialized disk");
+    puts("Disk array");
+
+    for (char** p = disk; p != disk + num_of_pages; ++p)
+        log_disk_page(p);
 }
 
-void log_frames_status() {
-    puts("PAGER:");
-    puts("--------- Frames Status ---------\n");
+char** init_disk() {
+    char** const dsk = malloc(num_of_pages * sizeof(char*));
 
-    for (long i = 0; i < num_of_frames; ++i)
-        log_frame_status(i);
+    for (char** p = dsk; p != dsk + num_of_pages; ++p)
+        *p = random_mem_entry();
 
-    puts("-----------------------------\n");
+    return dsk;
 }
 
-void log_disk_accesses() {
-    printf("PAGER: Total disk accesses: %ld\n", disk_access_cnt);
+// -------------------------- Frames Status --------------------------
+
+long* init_frames_status() {
+    long* const frames = malloc(num_of_frames * sizeof(long));
+    memset(frames, -1, num_of_frames * sizeof(long));
+    return frames;
 }
+
+void log_disk_access() {
+    printf("disk accesses is %ld so far\n", disk_access_cnt);
+}
+void log_total_disk_access() {
+    printf("%ld disk accesses in total\n", disk_access_cnt);
+}
+
+// -------------------------- Swap --------------------------
 
 void swap_in(const long page_ind, const long frame_ind) {
+    printf("Copy data from the disk (page=%ld) to RAM (frame=%ld)\n", page_ind, frame_ind);
+    log_RAM();
+
     strcpy(RAM[frame_ind], disk[page_ind]);
+    ++disk_access_cnt;
+
     page_table[page_ind].is_valid = 1;
     page_table[page_ind].frame = frame_ind;
     frames_status[frame_ind] = page_ind;
     store_page_table();
 
-    puts("PAGER: SWAP IN");
-    log_page_table();
-    log_frames_status();
-    log_RAM();
+    log_disk_access();
 }
 
 void free_frame(const long frame_ind) {
@@ -226,11 +248,6 @@ void swap_out(const long frame_ind, const long page_ind) {
     strcpy(disk[page_ind], RAM[frame_ind]);
     free_frame(frame_ind);
     ++disk_access_cnt;
-
-    puts("PAGER: SWAP OUT");
-    log_page_table();
-    log_frames_status();
-    log_RAM();
 
     page_table[page_ind].is_valid = 0;
     page_table[page_ind].frame = -1;
@@ -273,6 +290,8 @@ long prepare_random_frame() {
     const long replace_page_ind = frames_status[frame_ind];
     const page_table_entry* const pte = page_table + replace_page_ind;
 
+    printf("Chose a random victim page %ld\n", replace_page_ind);
+
     if (pte->is_dirty)
         swap_out(frame_ind, replace_page_ind);
 
@@ -300,37 +319,43 @@ void free_mem() {
     free_RAM();
 }
 
-void on_mmu_request_received(const pid_t mmu_pid) {
-    update_page_table_from_file();
+void kill_pager() {
+    puts("Pager is terminated");
+    exit(EXIT_SUCCESS);
+}
 
-    puts("PAGER: REQUEST");
-    log_page_table();
-    log_frames_status();
-    log_RAM();
+void on_mmu_request_received(const pid_t mmu_pid) {
+    printf("A disk access request from MMU Process (pid=%d)\n", mmu_pid);
+    update_page_table_from_file();
 
     page_table_entry* const pte = find_requested_page();
 
     if (pte == NULL) {
-        puts("PAGER: НИХУЯ НЕ НАШЕЛ");
-        log_page_table();
-        log_disk_accesses();
+        log_total_disk_access();
         free_mem();
-        puts("PISTON");
-        exit(EXIT_SUCCESS);
+        kill_pager();
     }
 
     const long page_ind = pte - page_table;
+    printf("Page %ld is referenced\n", page_ind);
+
     long frame_ind = find_free_frame();
 
     if (frame_ind != -1) {
+        printf("We can allocate it to free frame %ld\n", frame_ind);
         swap_in(page_ind, frame_ind);
         goto MMU_CONT;
     }
 
+    puts("We do not have free frames in RAM");
     frame_ind = prepare_random_frame();
+
+    printf("Replace/Evict it with page %ld to be allocated to frame %ld\n", page_ind, frame_ind);
     swap_in(page_ind, frame_ind);
 
-    MMU_CONT: kill(mmu_pid, SIGCONT);
+    MMU_CONT:
+    puts("Resume MMU process");
+    kill(mmu_pid, SIGCONT);
 }
 
 void sig_handler(const int signum, siginfo_t* info, void* vp) {
@@ -369,16 +394,18 @@ int main(const int argc, const char** const argv) {
     num_of_frames = parse_long_arg(argv, 2);
     if (num_of_frames <= 0) return EXIT_FAILURE;
 
-    disk = init_disk();
     page_table = init_page_table();
-    page_table_file = init_page_table_file();
-
-    store_page_table();
-    puts("PAGER: START");
-    log_page_table();
+    log_init_page_table();
 
     RAM = init_RAM();
-    log_RAM();
+    log_init_RAM();
+
+    page_table_file = init_page_table_file();
+    store_page_table();
+
+    disk = init_disk();
+    log_init_disk();
+
     frames_status = init_frames_status();
 
     register_signal(SIGUSR1, sig_handler);
