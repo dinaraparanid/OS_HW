@@ -1,0 +1,19 @@
+Hit ratio for random:
+    Small input (lab 8): 0.692308
+    Big input (lab 9): 0.611995
+
+Hit ratio for nfu:
+    Small input: 0.642857
+    Big input: 0.615385
+
+Hit ratio for aging:
+    Small input: 0.642857
+    Big input: 0.615385
+
+As it can be seen, a hit ratio for random page selection is chaotic and unpredictable,
+however, after many launches the resulting distribution is in [0.5..0.7]
+
+As for nfu and aging algorithms, there is no difference between them in the sense of hit/miss.
+I suppose that it is due to the fact that almost all pages were used 2 or 3 times in input,
+meaning that different counter strategies do not really affect the distribution,
+since the load on the pages is almost identical
