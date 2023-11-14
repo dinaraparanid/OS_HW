@@ -1,0 +1,52 @@
+1) Yes, monitor reported with opened and modifier events for myfile11.txt:
+
+File type:                regular file
+Path:                     /home/paranid5/PROGRAMMING/C/OS_HW/week10/bebra/myfile11.txt
+I-node number:            27670986
+Mode:                     100664 (octal)
+Link count:               3
+Ownership:                UID=1000   GID=1000
+Preferred I/O block size: 4096 bytes
+File size:                66 bytes
+Blocks allocated:         8
+Last status change:       Tue Nov 14 19:30:15 2023
+Last file access:         Tue Nov 14 19:30:00 2023
+Last file modification:   Tue Nov 14 19:30:15 2023
+
+
+File type:                regular file
+Path:                     /home/paranid5/PROGRAMMING/C/OS_HW/week10/bebra/myfile11.txt
+I-node number:            27670986
+Mode:                     100664 (octal)
+Link count:               3
+Ownership:                UID=1000   GID=1000
+Preferred I/O block size: 4096 bytes
+File size:                66 bytes
+Blocks allocated:         8
+Last status change:       Tue Nov 14 19:30:15 2023
+Last file access:         Tue Nov 14 19:30:00 2023
+Last file modification:   Tue Nov 14 19:30:15 2023
+
+2) No, monitor has not reported modification event for myfile13.txt,
+because /tmp/myfile1.txt is not in the watched directory,
+meaning that it will not track link update if it is not in the watched directory.
+However, monitor tracked change for the watched directory itself.
+
+3) After removing all duplicates with the same inode,
+only 2 hard links remained: myfile11.txt itself and /tmp/myfile1.txt,
+because it is not in the watched directory.
+myfile13.txt was not removed since it is a soft link with a different inode.
+
+File type:                regular file
+Path:                     /home/paranid5/PROGRAMMING/C/OS_HW/week10/bebra/myfile11.txt
+I-node number:            27669349
+Mode:                     100664 (octal)
+Link count:               2
+Last status change:       Tue Nov 14 19:47:09 2023
+Ownership:                UID=1000   GID=1000
+Preferred I/O block size: 4096 bytes
+Last file access:         Tue Nov 14 19:47:09 2023
+File size:                22 bytes
+Blocks allocated:         8
+Last file modification:   Tue Nov 14 19:47:09 2023
+Last status change:       Tue Nov 14 19:47:09 2023
