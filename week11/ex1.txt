@@ -1,0 +1,46 @@
+***** Try 1 *****
+bin
+..
+file2
+ex1
+.
+ex1.txt
+lost+found
+lib64
+file1
+lib
+***** Try 2 *****
+opt
+bin
+var
+cdrom
+lofsdisk
+swapfile
+libx32
+tmp
+sbin
+proc
+root
+run
+lib
+.
+lib32
+..
+home
+dev
+snap
+mnt
+sys
+media
+boot
+srv
+lib64
+etc
+lost+found
+usr
+
+Results:
+
+As it can be seen, on the first try only the new file system is printed.
+On the next try, original filesystem is printed, since chroot changes root only for the single process,
+which was killed after executing ex1 on the first try.
