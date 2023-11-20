@@ -1,0 +1,33 @@
+bebra_fs
+C file1.c 3
+C file2.c 8
+C file3.c 4
+C a.out   5
+C lab1.c 6
+L
+W file1.c 0
+W file1.c 1
+W file1.c 2
+W file2.c 3
+W file2.c 7
+W file2.c 2
+W file2.c 4
+W file2.c 5
+W a.out 0
+W a.out 1
+W a.out 2
+W a.out 3
+W a.out 4
+D file3.c
+R file1.c 2
+C file4.c 7
+L
+R file2.c 4
+R file2.c 5
+R file2.c 6
+D lab1.c
+C lab2.c 7
+R a.out 1
+R a.out 3
+R a.out 0
+L
