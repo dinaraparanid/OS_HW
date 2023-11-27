@@ -1,3 +1,4 @@
+#!/bin/bash
 gcc create_fs.c -o create_fs
 gcc ex2.c -o ex2
 
