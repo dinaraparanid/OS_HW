@@ -32,6 +32,17 @@ void concurrent_queue_init(concurrent_queue* const q) {
     pthread_rwlock_init(&q->__tail_lock, NULL);
 }
 
+void concurrent_queue_destroy(concurrent_queue* const q) {
+    for (__concurrent_queue_node* head = q->__head; head != NULL;) {
+        __concurrent_queue_node* next = head->__next;
+        free(head);
+        head = next;
+    }
+
+    pthread_rwlock_destroy(&q->__head_lock);
+    pthread_rwlock_destroy(&q->__tail_lock);
+}
+
 void concurrent_queue_offer(concurrent_queue* const q, const long value) {
     __concurrent_queue_node* const new_node = malloc(sizeof(__concurrent_queue_node));
     new_node->__res_id = value;
@@ -46,17 +57,17 @@ void concurrent_queue_offer(concurrent_queue* const q, const long value) {
 long concurrent_queue_poll(concurrent_queue* const q) {
     pthread_rwlock_wrlock(&q->__head_lock);
 
-    __concurrent_queue_node* const first = q->__head->__next;
+    __concurrent_queue_node* const next = q->__head->__next;
 
-    if (first == NULL) {
+    if (next == NULL) {
         pthread_rwlock_unlock(&q->__head_lock);
         return EMPTY_QUEUE_RES;
     }
 
     __concurrent_queue_node* const old = q->__head;
-    q->__head = first;
+    q->__head = next;
 
-    const long res = first->__res_id;
+    const long res = next->__res_id;
     free(old);
 
     pthread_rwlock_unlock(&q->__head_lock);
@@ -115,6 +126,10 @@ void lock_graph_node_init(
     graph_node->type = type;
 }
 
+void lock_graph_node_destroy(lock_graph_node* const graph_node) {
+    free(graph_node->connections);
+}
+
 void lock_graph_init(
         lock_graph* const graph,
         const long threads_len,
@@ -130,6 +145,13 @@ void lock_graph_init(
 
     graph->threads_len = threads_len;
     graph->mutexes_len = mutexes_len;
+}
+
+void lock_graph_destroy(lock_graph* const graph) {
+    for (lock_graph_node* n = graph->nodes; n != graph->nodes + graph->threads_len + graph->mutexes_len; ++n)
+        lock_graph_node_destroy(n);
+
+    pthread_rwlock_destroy(&graph->__lock);
 }
 
 lock_graph_node* lock_graph_thread_at(
@@ -249,7 +271,10 @@ int dfs(
         lock_graph_node* const cur_node,
         void** const visited
 ) {
-    if (tsearch(cur_node, visited, lock_graph_node_compare) != cur_node)
+    lock_graph_node** const found_ptr = tsearch(cur_node, visited, lock_graph_node_compare);
+    lock_graph_node* const found = *found_ptr;
+
+    if (found != cur_node)
         return 1;
 
     for (
@@ -264,6 +289,15 @@ int dfs(
     return 0;
 }
 
+int delete_node(const void* const __a, const void* const __b) { return 0; }
+
+void tfree(void** const root) {
+    while (*root != NULL) {
+        lock_graph_node* const elem = *(lock_graph_node**) root;
+        tdelete(elem, root, delete_node);
+    }
+}
+
 int has_cycle(lock_graph* const graph, const long thread_index) {
     void* visited = NULL;
 
@@ -275,6 +309,7 @@ int has_cycle(lock_graph* const graph, const long thread_index) {
     }
 
     pthread_rwlock_unlock(&graph->__lock);
+    tfree(&visited);
     return 0;
 }
 
@@ -426,6 +461,14 @@ void handle_requests(
             perror("pthread_join");
 
     puts("No deadlocks");
+
+    lock_graph_destroy(graph);
+    free(graph);
+
+    for (concurrent_queue* q = qs; q != qs + threads_len; ++q)
+        concurrent_queue_destroy(q);
+    free(qs);
+
     free(threads_init);
 }
 
@@ -455,6 +498,9 @@ int main(const int argc, const char** const argv) {
     }
 
     handle_requests(fin, threads, threads_len, mutexes, mutexes_len);
+
+    for (pthread_mutex_t* m = mutexes; m != mutexes + mutexes_len; ++m)
+        pthread_mutex_destroy(m);
 
     fclose(fin);
     free(mutexes);
